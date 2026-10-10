@@ -1,0 +1,32 @@
+name: Validate skills
+
+on:
+  push:
+    paths:
+      - "skills/**"
+      - "vendor/**"
+      - ".github/scripts/**"
+      - "tests/**"
+      - ".github/workflows/**"
+  pull_request:
+    paths:
+      - "skills/**"
+      - "vendor/**"
+      - ".github/scripts/**"
+      - "tests/**"
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install YAML parser
+        run: python3 -m pip install --disable-pip-version-check 'PyYAML==6.0.2'
+      - name: Validate SKILL.md files
+        run: python3 .github/scripts/validate_skills.py
+      - name: Run script tests
+        run: python3 -m unittest discover -s tests -v
