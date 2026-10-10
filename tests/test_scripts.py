@@ -53,9 +53,16 @@ class ScriptTests(unittest.TestCase):
     def test_parse_paths_whitelist(self):
         with tempfile.TemporaryDirectory() as directory:
             config = Path(directory) / "sources.yml"
-            config.write_text("sources:\n  - name: x\n    repository: https://example/x\n    paths: [.system/skill-creator, .curated/playwright]\n", encoding="utf-8")
-            parsed = sync.parse_sources(config)
-            self.assertEqual(parsed[0]["paths"], [".system/skill-creator", ".curated/playwright"])
+            config.write_text(
+                "sources:\n"
+                "  - name: upstream-example\n"
+                "    repository: https://github.com/acme/skills.git\n"
+                "    paths:\n"
+                "      - skills/one\n"
+                "      - skills/two\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(sync.parse_sources(config)[0]["paths"], ["skills/one", "skills/two"])
 
     def test_frontmatter_requires_name_and_description(self):
         with tempfile.TemporaryDirectory() as directory:
