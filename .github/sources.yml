@@ -1,0 +1,17 @@
+# Upstream skill repositories to mirror into vendor/<name>/<skill>/.
+# Add entries with optional paths whitelists:
+#
+# sources:
+#   - name: upstream-example
+#     repository: https://github.com/OWNER/UPSTREAM_SKILLS_REPO.git
+#     ref: main
+#     paths: [skills/example]  # optional directories/files; omit to sync all
+#
+# The active entry below intentionally selects only two OpenAI skills.
+sources:
+  - name: openai-skills
+    repository: https://github.com/openai/skills.git
+    ref: main
+    paths:
+      - .system/skill-creator
+      - .curated/playwright
