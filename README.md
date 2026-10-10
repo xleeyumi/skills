@@ -12,7 +12,7 @@ npx skillfish add xleeyumi/skills
 skills/<name>/SKILL.md              # locally authored skills
 vendor/<source>/<name>/SKILL.md     # generated skills mirrored from upstream
 .github/sources.yml                 # upstream repositories and refs
-.github/scripts/sync_skills.py      # dependency-free upstream sync
+.github/scripts/sync_skills.py      # upstream sync
 .github/scripts/validate_skills.py  # frontmatter and layout checks
 .github/workflows/sync-upstream-skills.yml
 .github/workflows/validate-skills.yml
@@ -46,3 +46,4 @@ The sync script uses Python and PyYAML 6.0.2 for strict YAML parsing and intenti
 ## skillfish discovery notes
 
 `skillfish` 1.0.x recursively inspects a GitHub repository's default branch for files named exactly `SKILL.md`, then reads their frontmatter. The `skills/<name>/SKILL.md` layout therefore works with automatic discovery, while the generated `vendor/<source>/<name>/SKILL.md` layout keeps upstream skills isolated from local names.
+
