@@ -1,0 +1,39 @@
+name: Sync upstream skills
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out this registry
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install YAML parser
+        run: python3 -m pip install --disable-pip-version-check 'PyYAML==6.0.2'
+
+      - name: Sync configured upstream repositories
+        run: python3 .github/scripts/sync_skills.py
+
+      - name: Validate local and vendored skills
+        run: python3 .github/scripts/validate_skills.py
+
+      - name: Commit and push generated vendor changes
+        run: |
+          git add -A vendor/
+          if git diff --cached --quiet -- vendor; then
+            echo "No vendor changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: sync upstream skills"
+          git push
