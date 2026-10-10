@@ -1,13 +1,5 @@
 # Upstream skill repositories to mirror into vendor/<name>/<skill>/.
-# Add entries with optional paths whitelists:
-#
-# sources:
-#   - name: upstream-example
-#     repository: https://github.com/OWNER/UPSTREAM_SKILLS_REPO.git
-#     ref: main
-#     paths: [skills/example]  # optional directories/files; omit to sync all
-#
-# The active entry below intentionally selects only two OpenAI skills.
+# Each source may restrict syncing to selected skill directories with paths.
 sources:
   - name: openai-skills
     repository: https://github.com/openai/skills.git
@@ -15,3 +7,14 @@ sources:
     paths:
       - skills/.system/skill-creator
       - skills/.curated/playwright
+  - name: browser-use
+    repository: https://github.com/browser-use/browser-use.git
+    ref: main
+    paths:
+      - skills/browser-use
+  - name: taste-skill
+    repository: https://github.com/Leonxlnx/taste-skill.git
+    ref: main
+    paths:
+      - skills/taste-skill
+      - skills/taste-skill-v1
