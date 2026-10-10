@@ -13,5 +13,5 @@ sources:
     repository: https://github.com/openai/skills.git
     ref: main
     paths:
-      - .system/skill-creator
-      - .curated/playwright
+      - skills/.system/skill-creator
+      - skills/.curated/playwright
