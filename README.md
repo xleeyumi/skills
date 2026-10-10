@@ -29,9 +29,10 @@ sources:
   - name: upstream-example
     repository: https://github.com/OWNER/UPSTREAM_SKILLS_REPO.git
     ref: main
+    paths: [skills/example]  # optional whitelist; omit to sync every skill
 ```
 
-The checked-in workflow runs daily and can also be started manually. It clones each configured ref, finds every `SKILL.md`, and copies each skill directory to `vendor/<source>/<name>/`. Local content under `skills/` is never modified. The workflow validates the result, then commits and pushes only generated `vendor/` changes. Until real sources are configured, the workflow is a safe no-op.
+The checked-in workflow runs daily and can also be started manually. It clones each configured ref, finds every `SKILL.md` (or only the directories/files listed in optional `paths`), and copies each selected skill directory to `vendor/<source>/<name>/`. Local content under `skills/` is never modified. The workflow validates the result, then commits and pushes only generated `vendor/` changes. The checked-in configuration selectively mirrors OpenAI’s `skill-creator` and `playwright` skills.
 
 You can run the same checks locally:
 
