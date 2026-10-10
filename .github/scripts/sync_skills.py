@@ -13,12 +13,13 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from typing import Any
 from pathlib import Path
 
 SOURCE_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 
 
-def parse_sources(path: Path) -> list[dict[str, str]]:
+def parse_sources(path: Path) -> list[dict[str, Any]]:
     """Parse sources.yml using a real YAML parser (never execute YAML)."""
     try:
         import yaml
@@ -37,18 +38,23 @@ def parse_sources(path: Path) -> list[dict[str, str]]:
         return []
     if not isinstance(entries, list):
         raise ValueError("'sources' must be a list")
-    result: list[dict[str, str]] = []
+    result: list[dict[str, Any]] = []
     for entry in entries:
         if not isinstance(entry, dict):
             raise ValueError("each source must be a mapping")
         if set(entry) - {"name", "repository", "ref", "paths"}:
             raise ValueError("source fields may only be name, repository, ref, and paths")
-        if "paths" in entry and not isinstance(entry["paths"], list):
-            raise ValueError("source 'paths' must be a list")
-        item = {str(k): str(v) for k, v in entry.items() if v is not None and k != "paths"}
-        if "paths" in entry:
-            item["paths"] = entry["paths"]  # type: ignore[assignment]
-        result.append(item)
+        normalized = {str(k): v for k, v in entry.items() if v is not None}
+        paths = normalized.get("paths")
+        if paths is not None:
+            if not isinstance(paths, list) or not paths or not all(isinstance(p, str) for p in paths):
+                raise ValueError("source paths must be a non-empty list of strings")
+            for path_value in paths:
+                path_obj = Path(path_value)
+                if path_obj.is_absolute() or ".." in path_obj.parts or path_obj == Path("."):
+                    raise ValueError(f"unsafe source path: {path_value!r}")
+            normalized["paths"] = paths
+        result.append(normalized)
     return result
 
 
@@ -57,7 +63,7 @@ def run(command: list[str], cwd: Path | None = None) -> None:
     subprocess.run(command, cwd=cwd, check=True)
 
 
-def source_name(source: dict[str, str]) -> str:
+def source_name(source: dict[str, Any]) -> str:
     name = source.get("name", "").strip()
     if not name or not SOURCE_NAME_RE.fullmatch(name):
         raise ValueError(
@@ -66,7 +72,7 @@ def source_name(source: dict[str, str]) -> str:
     return name
 
 
-def skill_name(source: dict[str, str], skill_md: Path, checkout: Path) -> str:
+def skill_name(source: dict[str, Any], skill_md: Path, checkout: Path) -> str:
     relative = skill_md.relative_to(checkout)
     if relative.parent == Path("."):
         candidate = source_name(source)
@@ -80,7 +86,7 @@ def skill_name(source: dict[str, str], skill_md: Path, checkout: Path) -> str:
     return candidate
 
 
-def sync_source(source: dict[str, str], vendor_root: Path, temp_root: Path, blocked_names: set[str] | None = None) -> int:
+def sync_source(source: dict[str, Any], vendor_root: Path, temp_root: Path, blocked_names: set[str] | None = None) -> int:
     name = source_name(source)
     repository = source.get("repository", "").strip()
     if not repository or repository.startswith("https://github.com/OWNER/"):
@@ -95,26 +101,11 @@ def sync_source(source: dict[str, str], vendor_root: Path, temp_root: Path, bloc
     clone += ["--", repository, str(checkout)]
     run(clone)
 
-    configured_paths = source.get("paths") or []
-    if isinstance(configured_paths, str):
-        configured_paths = [configured_paths]
-    if configured_paths:
-        roots: list[Path] = []
-        for raw_path in configured_paths:
-            rel = Path(str(raw_path))
-            if rel.is_absolute() or ".." in rel.parts:
-                raise ValueError(f"Source {name!r} has unsafe paths entry {raw_path!r}.")
-            target = checkout / rel
-            if not target.exists():
-                raise ValueError(f"Source {name!r} paths entry does not exist: {raw_path!r}")
-            roots.append(target)
-        skill_files = sorted(
-            p for root in roots
-            for p in ([root] if root.is_file() and root.name == "SKILL.md" else root.rglob("SKILL.md"))
-            if ".git" not in p.parts
-        )
-    else:
-        skill_files = sorted(p for p in checkout.rglob("SKILL.md") if ".git" not in p.parts)
+    selected_paths = source.get("paths")
+    skill_files = sorted(p for p in checkout.rglob("SKILL.md") if ".git" not in p.parts)
+    if selected_paths:
+        allowed = [checkout / path for path in selected_paths]
+        skill_files = [p for p in skill_files if any(p == base / "SKILL.md" or base in p.parents for base in allowed)]
     if not skill_files:
         raise ValueError(f"No SKILL.md files found in upstream source {name!r}.")
 
