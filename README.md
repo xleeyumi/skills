@@ -3,10 +3,8 @@
 A GitHub repository for sharing multiple Agent Skills. Each skill is an independent directory with a `SKILL.md` file, so `skillfish` can discover and install it directly:
 
 ```bash
-npx skillfish add OWNER/REPOSITORY
+npx skillfish add xleeyumi/skills
 ```
-
-Replace `OWNER/REPOSITORY` with this repository's eventual GitHub owner and name. Those values are intentionally left as placeholders until the remote repository is created.
 
 ## Layout
 
@@ -24,17 +22,16 @@ The local `skills/repository-maintenance` skill is a starter skill for maintaini
 
 ## Configure upstream sync
 
-Edit `.github/sources.yml` once the upstream owner and URL are known:
+Edit `.github/sources.yml` to add or change upstream repositories and optional path whitelists:
 
 ```yaml
 sources:
   - name: upstream-example
     repository: https://github.com/OWNER/UPSTREAM_SKILLS_REPO.git
     ref: main
-    paths: [skills/example]  # optional whitelist; omit to sync every skill
 ```
 
-The scheduled GitHub Actions workflow runs daily and can also be started manually. It clones each configured ref, finds every `SKILL.md` (or only the directories/files listed in optional `paths`), and copies each selected skill directory to `vendor/<source>/<name>/`. Local content under `skills/` is never modified. The workflow validates the result, then commits and pushes only generated `vendor/` changes. The checked-in configuration selectively mirrors OpenAI's `skill-creator` and `playwright` skills.
+The checked-in workflow runs daily and can also be started manually. It clones each configured ref, finds every `SKILL.md`, and copies each skill directory to `vendor/<source>/<name>/`. Local content under `skills/` is never modified. The workflow validates the result, then commits and pushes only generated `vendor/` changes. Until real sources are configured, the workflow is a safe no-op.
 
 You can run the same checks locally:
 
