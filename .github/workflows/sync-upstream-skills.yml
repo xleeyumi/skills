@@ -1,6 +1,11 @@
 name: Sync upstream skills
 
 on:
+  push:
+    paths:
+      - ".github/sources.yml"
+      - ".github/scripts/sync_skills.py"
+      - ".github/workflows/sync-upstream-skills.yml"
   schedule:
     - cron: "17 6 * * *"
   workflow_dispatch:
@@ -37,3 +42,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "chore: sync upstream skills"
           git push
+
